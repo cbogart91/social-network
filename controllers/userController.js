@@ -79,5 +79,42 @@ async deleteUser(req, res) {
   } catch (err) {
     res.status(500).json(err);
   }
-}
+},
+// add user to friends list
+async addUserToFriends(req, res) {
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: req.params.userId },
+      { $addToSet: { friends: req.body } },
+      { runValidators: true, new: true },
+    );
+    if (!user) {
+      return res.status(404).json({ message: 'No user with this id!' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+},
+// delete user from friends list
+async deleteFriends(req, res) {
+  try {
+    const user = await User.findOneAndRemove({ _id: req.params.userId });
+    if (!user) {
+      return res.status(404).json({ message: 'No user with that id!' });
+    }
+    const userName = await User.findOneandUpdate(
+      { users: req.params.userId },
+      { $pull: { users: req.params.userId } },
+      { new: true }
+    );
+    if (!userName) {
+      return res
+      .status(404).json({ message: 'No user with that id!' });
+    }
+    res.json({ message: 'User successfully deleted!' });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+},
 };

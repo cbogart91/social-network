@@ -3,7 +3,7 @@ const Thought = require('../models/Thought');
 module.exports = {
   async getThought(req, res) {
     try {
-      const Thought = await Thought.find();
+      const thought = await Thought.find();
       res.json(thought);
     } catch (err) {
       res.status(500).json(err);

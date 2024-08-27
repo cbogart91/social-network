@@ -1,34 +1,38 @@
-const { Schema, Types, model }= require('mongoose');
+const mongoose = require('mongoose');
 
-const reactionSchema = new Schema(
+const formatDate = function (d) {
+    return (
+        [d.getMonth() + 1, d.getDate(), d.getFullYear()].join("/") +
+        " " +
+        [d.getHours(), d.getMinutes(), d.getSeconds()].join(":")
+    );
+};
+
+const reactionSchema = new mongoose.Schema(
     {
-    reactionId: {
-        type: Schema.Types.ObjectId,
-        default: () => new Types.ObjectId(),
+        reactionBody: {
+            type: String,
+            required: true,
+            maxLength: 280,
+        },
+        username: {
+            type: String,
+            required: true,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+            get: formatDate,
+        },
     },
-    reactionBody: {
-        type: String,
-        required: true,
-        maxLength: 280,
-    },
-    username: {
-        type: String,
-        required: true,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-},
-{
-    toJSON: {
-        virtuals: true,
-    },
-    id: false,
+    {
+        toJSON: {
+            getters: true,
+        },
     }
 );
 
-const thoughtSchema = new Schema(
+const thoughtSchema = new mongoose.Schema(
     {
     thoughtText: {
         type: String,
@@ -39,21 +43,32 @@ const thoughtSchema = new Schema(
     createdAt: {
         type: Date,
         default: Date.now,
+        get: formatDate,
     },
     username: {
         type: String,
         required: true,
     },
-    reaction: [reactionSchema],
+    userId: {
+        type: mongoose.Types.ObjectId,
+        ref: "users",
+        required: true,
+    },
+    reactions: [reactionSchema],
 
     },
     {
         toJSON: {
-            virtuals: true,
+            getters: true,
         },
-        id: false,
     }
 );
-const Thought = model('Thought', thoughtSchema);
+
+
+thoughtSchema.virtual('reactionCount').get(function() {
+    return this.reactions.length;
+});
+
+const Thought = mongoose.model('Thought', thoughtSchema);
 
 module.exports = Thought;

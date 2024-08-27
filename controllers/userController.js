@@ -80,18 +80,31 @@ async deleteUser(req, res) {
     res.status(500).json(err);
   }
 },
+// get user and users friends
+async getFriends(req,res) {
+  try {
+    User.findById(req.params.id)
+    .lean()
+    .populate("friends", "-friends -thoughts -__v")
+    .then((data) => {
+      res.json(data);
+    });
+  } catch (err) {
+    res.status(404).json({ message: "Invalid userId! "});
+  }
+},
 // add user to friends list
 async addUserToFriends(req, res) {
   try {
-    const user = await User.findOneAndUpdate(
-      { _id: req.params.userId },
-      { $addToSet: { friends: req.body } },
-      { runValidators: true, new: true },
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { $push: { friends: req.params.friendId } },
+      { new: true },
     );
     if (!user) {
       return res.status(404).json({ message: 'No user with this id!' });
     }
-    res.json(user);
+    res.json({ message: "Successfully added to friends list!"});
   } catch (err) {
     res.status(500).json(err);
   }
